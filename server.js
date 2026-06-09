@@ -13,7 +13,8 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'src/uploads')));
 
 // Mount API Routes
-app.use('/api', routes);
+const apiBaseUrl = process.env.BASE_URL || '/api/v1/procurement';
+app.use(apiBaseUrl, routes);
 
 // Mount Global Error Handler (Must be after routes)
 app.use(errorHandler);

@@ -41,6 +41,7 @@ This is the backend API for the Procurement Management System, built with Node.j
     PORT=5000
     MONGO_URI=your_mongodb_connection_string
     JWT_SECRET=your_jwt_secret_key
+    BASE_URL=/api/v1/procurement
     ```
 3.  **Run in Development Mode (with Nodemon):**
     ```bash
@@ -64,12 +65,12 @@ This application implements Role-Based Access Control (RBAC). The application ro
 
 ## API Endpoints Documentation
 
-All routes are prefixed with `/api`.
+All routes are prefixed with the base URL configured in `.env` (default is `/api/v1/procurement`). Below, paths assume this default.
 
 ### 1. Authentication
 
 #### **Register User**
-*   **URL:** `/api/auth/register`
+*   **URL:** `/api/v1/procurement/auth/register`
 *   **Method:** `POST`
 *   **Auth Required:** No
 *   **Body Parameters (JSON):**
@@ -81,7 +82,7 @@ All routes are prefixed with `/api`.
 *   *Note:* The body must contain either `email` or `mobile`.
 
 #### **Login User**
-*   **URL:** `/api/auth/login`
+*   **URL:** `/api/v1/procurement/auth/login`
 *   **Method:** `POST`
 *   **Auth Required:** No
 *   **Body Parameters (JSON):**
@@ -95,7 +96,7 @@ All routes are prefixed with `/api`.
 ### 2. Orders
 
 #### **Create Order**
-*   **URL:** `/api/orders`
+*   **URL:** `/api/v1/procurement/orders`
 *   **Method:** `POST`
 *   **Auth Required:** Yes (Role: `procurement_manager`)
 *   **Headers:** `Authorization: Bearer <JWT_TOKEN>`
@@ -104,7 +105,7 @@ All routes are prefixed with `/api`.
     *   `details` (String, Required): Description/details of the order.
 
 #### **Update Order Status**
-*   **URL:** `/api/orders/:orderId/status`
+*   **URL:** `/api/v1/procurement/orders/:orderId/status`
 *   **Method:** `PATCH`
 *   **Auth Required:** Yes (Roles: `admin`, `procurement_manager`, `inspection_manager`)
 *   **Headers:** `Authorization: Bearer <JWT_TOKEN>`
@@ -112,7 +113,7 @@ All routes are prefixed with `/api`.
     *   `status` (String, Required): The new status of the order (e.g. `pending`, `inspected`, `approved`, etc.)
 
 #### **Link Checklist to Order**
-*   **URL:** `/api/orders/link-checklist`
+*   **URL:** `/api/v1/procurement/orders/link-checklist`
 *   **Method:** `POST`
 *   **Auth Required:** Yes (Role: `procurement_manager`)
 *   **Headers:** `Authorization: Bearer <JWT_TOKEN>`
@@ -125,7 +126,7 @@ All routes are prefixed with `/api`.
 ### 3. Checklists
 
 #### **Create Checklist Template**
-*   **URL:** `/api/checklists/template`
+*   **URL:** `/api/v1/procurement/checklists/template`
 *   **Method:** `POST`
 *   **Auth Required:** Yes (Role: `procurement_manager`)
 *   **Headers:** `Authorization: Bearer <JWT_TOKEN>`
@@ -138,7 +139,7 @@ All routes are prefixed with `/api`.
         *   `isRequired` (Boolean, Default: `true`)
 
 #### **Submit Checklist Inspection**
-*   **URL:** `/api/checklists/submit`
+*   **URL:** `/api/v1/procurement/checklists/submit`
 *   **Method:** `POST`
 *   **Auth Required:** Yes (Role: `inspection_manager`)
 *   **Headers:** `Authorization: Bearer <JWT_TOKEN>`
