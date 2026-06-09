@@ -2,7 +2,11 @@ const Checklist = require('../models/Checklist');
 const Submission = require('../models/Submission');
 const Order = require('../models/Order');
 
-// 1. PM Creates the Template (The "Question Paper")
+// ==========================================
+// A. CHECKLIST TEMPLATES CRUD
+// ==========================================
+
+// 1. Create Checklist Template (PM or Admin only)
 exports.createTemplate = async (req, res) => {
   try {
     const { title, fields } = req.body;
@@ -17,21 +21,97 @@ exports.createTemplate = async (req, res) => {
   }
 };
 
-// 2. IM Submits the Answer
+// 2. Get all Checklist Templates
+exports.getTemplates = async (req, res) => {
+  try {
+    const templates = await Checklist.find()
+      .populate('createdBy', 'email role mobile');
+    res.status(200).json({ success: true, data: templates });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 3. Get Checklist Template by ID
+exports.getTemplateById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const template = await Checklist.findById(id)
+      .populate('createdBy', 'email role mobile');
+
+    if (!template) {
+      return res.status(404).json({ error: 'Checklist template not found' });
+    }
+
+    res.status(200).json({ success: true, data: template });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 4. Update Checklist Template (PM or Admin only)
+exports.updateTemplate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, fields } = req.body;
+
+    const template = await Checklist.findById(id);
+    if (!template) {
+      return res.status(404).json({ error: 'Checklist template not found' });
+    }
+
+    // Authorization: Only admin or the creator of the template can update it
+    if (req.user.role !== 'admin' && template.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Not authorized to update this template' });
+    }
+
+    if (title !== undefined) template.title = title;
+    if (fields !== undefined) template.fields = fields;
+
+    await template.save();
+    res.status(200).json({ success: true, data: template });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// 5. Delete Checklist Template (PM or Admin only)
+exports.deleteTemplate = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const template = await Checklist.findById(id);
+    if (!template) {
+      return res.status(404).json({ error: 'Checklist template not found' });
+    }
+
+    // Authorization: Only admin or the creator of the template can delete it
+    if (req.user.role !== 'admin' && template.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Not authorized to delete this template' });
+    }
+
+    await Checklist.findByIdAndDelete(id);
+    res.status(200).json({ success: true, message: 'Checklist template deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ==========================================
+// B. CHECKLIST SUBMISSIONS CRUD
+// ==========================================
+
+// 1. Submit Inspection Answers (IM only)
 exports.submitChecklist = async (req, res) => {
   try {
     const { orderId } = req.body;
     let submittedAnswers;
 
-    // Parse the answers payload.
-    // When sent via multipart/form-data (Multer), req.body.answers arrives as a JSON string.
-    // When sent via application/json, it may already be a parsed array.
     if (!req.body.answers) {
        return res.status(400).json({ error: 'Answers payload is required' });
     }
 
     if (Array.isArray(req.body.answers)) {
-      // Already parsed (e.g. sent as application/json)
       submittedAnswers = req.body.answers;
     } else if (typeof req.body.answers === 'string') {
       try {
@@ -55,17 +135,13 @@ exports.submitChecklist = async (req, res) => {
     const templateFields = order.checklistTemplateId.fields;
     const finalAnswers = [];
 
-    // Design Pattern: Data Transfer Object (DTO) Mapping / Validation
-    // Validate incoming answers against the template requirements
     for (const field of templateFields) {
       const providedAnswer = submittedAnswers.find(a => a.questionLabel === field.label);
-      
       let finalValue = null;
 
       if (field.type === 'file') {
-        // If it's a file, check if multer processed it
         if (req.file) {
-          finalValue = `/uploads/${req.file.filename}`; // Link the file stream
+          finalValue = `/uploads/${req.file.filename}`;
         } else if (field.isRequired) {
            return res.status(400).json({ error: `File upload required for: ${field.label}` });
         }
@@ -76,7 +152,6 @@ exports.submitChecklist = async (req, res) => {
         finalValue = providedAnswer ? providedAnswer.value : null;
       }
 
-      // Snapshot the question and answer together
       finalAnswers.push({
         questionLabel: field.label,
         type: field.type,
@@ -84,7 +159,6 @@ exports.submitChecklist = async (req, res) => {
       });
     }
 
-    // Save the snapshot (independent of future template updates)
     const submission = await Submission.create({
       orderId,
       inspectionManagerId: req.user._id,
@@ -92,6 +166,128 @@ exports.submitChecklist = async (req, res) => {
     });
 
     res.status(201).json({ success: true, data: submission });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 2. Get all submissions (Admin/PM see all, IM sees their own)
+exports.getSubmissions = async (req, res) => {
+  try {
+    let filter = {};
+
+    if (req.user.role === 'inspection_manager') {
+      filter.inspectionManagerId = req.user._id;
+    } // Admin & PM see all submissions
+
+    const submissions = await Submission.find(filter)
+      .populate('orderId')
+      .populate('inspectionManagerId', 'email role mobile');
+
+    res.status(200).json({ success: true, data: submissions });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 3. Get submission by ID
+exports.getSubmissionById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const submission = await Submission.findById(id)
+      .populate('orderId')
+      .populate('inspectionManagerId', 'email role mobile');
+
+    if (!submission) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+
+    // Authorization check
+    if (req.user.role === 'inspection_manager' && submission.inspectionManagerId._id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Not authorized to view this submission' });
+    }
+
+    res.status(200).json({ success: true, data: submission });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 4. Update Submission (IM or Admin only)
+exports.updateSubmission = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const submission = await Submission.findById(id);
+
+    if (!submission) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+
+    // Authorization: Only the creator of the submission or admin can update it
+    if (req.user.role !== 'admin' && submission.inspectionManagerId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Not authorized to update this submission' });
+    }
+
+    // Parse answers if provided in body
+    if (req.body.answers) {
+      let submittedAnswers;
+      if (Array.isArray(req.body.answers)) {
+        submittedAnswers = req.body.answers;
+      } else if (typeof req.body.answers === 'string') {
+        try {
+          submittedAnswers = JSON.parse(req.body.answers);
+        } catch (parseErr) {
+          return res.status(400).json({ error: 'Invalid answers format.' });
+        }
+      } else {
+        return res.status(400).json({ error: 'Invalid answers format.' });
+      }
+
+      // Merge / Update answers
+      const updatedAnswers = submission.answers.map(ans => {
+        const matchingAnswer = submittedAnswers.find(sa => sa.questionLabel === ans.questionLabel);
+        
+        if (ans.type === 'file' && req.file) {
+          return { ...ans, value: `/uploads/${req.file.filename}` };
+        }
+        
+        if (matchingAnswer) {
+          return { ...ans, value: matchingAnswer.value };
+        }
+        
+        return ans;
+      });
+
+      submission.answers = updatedAnswers;
+    } else if (req.file) {
+      // If only file is uploaded, update the first 'file' field
+      const updatedAnswers = submission.answers.map(ans => {
+        if (ans.type === 'file') {
+          return { ...ans, value: `/uploads/${req.file.filename}` };
+        }
+        return ans;
+      });
+      submission.answers = updatedAnswers;
+    }
+
+    await submission.save();
+    res.status(200).json({ success: true, data: submission });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// 5. Delete Submission (Admin only)
+exports.deleteSubmission = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const submission = await Submission.findByIdAndDelete(id);
+    if (!submission) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'Submission deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
