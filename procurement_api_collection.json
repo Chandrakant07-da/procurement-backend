@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "7a35368a-6b45-4de4-850f-e281519b7d41",
     "name": "Procurement Management API Collection",
-    "description": "Postman Collection for Procurement Management System API containing all authentication, user CRUD, order management, checklist dynamic template, and inspection submission flows.",
+    "description": "Postman Collection for the Procurement Management System API containing all authentication, user CRUD, order management, checklist dynamic template, and inspection submission flows.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
