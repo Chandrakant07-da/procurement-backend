@@ -6,7 +6,7 @@ const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expires
 
 exports.login = async (req, res) => {
   const { email, mobile, password } = req.body;
-  
+
   try {
     // Determine login method dynamically based on input 
     let user;
@@ -30,21 +30,19 @@ exports.login = async (req, res) => {
 
 exports.registerUser = async (req, res) => {
   // Logic to enforce creation hierarchies (Admin creating PM, PM creating IM, etc.) [cite: 35, 38]
-  console.log("req.body",req.body)
   const { role, email, mobile, password, managerId } = req.body;
-  console.log("req?.user ::",req?.user);
-  
+
   const creatorRole = req?.user?.role;
 
   if (creatorRole === 'inspection_manager') {
-      return res.status(403).json({ error: 'Inspection manager cannot create users' });
+    return res.status(403).json({ error: 'Inspection manager cannot create users' });
   }
 
   if (creatorRole === 'procurement_manager' && role === 'procurement_manager') {
-      return res.status(403).json({ error: 'PM cannot create another PM' });
+    return res.status(403).json({ error: 'PM cannot create another PM' });
   }
 
-  try {  
+  try {
     const user = await User.create({ role, email, mobile, password, managerId });
     res.status(201).json({ success: true, data: user });
   } catch (error) {
