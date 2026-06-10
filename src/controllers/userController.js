@@ -1,6 +1,6 @@
 const User = require('../models/User');
 
-// 1. Get all users (Admin only)
+// Get all users (Admin only)
 exports.getUsers = async (req, res) => {
   try {
     const users = await User.find().select('-password');
@@ -10,7 +10,7 @@ exports.getUsers = async (req, res) => {
   }
 };
 
-// 2. Get user by ID (Admin or own profile)
+// Get user by ID
 exports.getUserById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -31,13 +31,13 @@ exports.getUserById = async (req, res) => {
   }
 };
 
-// 3. Update user details (Admin or own profile)
+//Update user details (Admin or own profile)
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const { role, email, mobile, password, managerId } = req.body;
 
-    // Authorization: User can only update their own profile unless they are an admin
+    // User can only update their own profile unless they are an admin
     if (req.user.role !== 'admin' && req.user._id.toString() !== id) {
       return res.status(403).json({ error: 'Not authorized to update this user profile' });
     }
@@ -47,7 +47,7 @@ exports.updateUser = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Role safety: Non-admin users cannot change their own role
+    // Non-admin users cannot change their own role
     if (role && req.user.role !== 'admin' && role !== user.role) {
       return res.status(403).json({ error: 'Non-admin users cannot change user roles' });
     }
@@ -71,7 +71,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// 4. Delete user (Admin only)
+// Delete user
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;

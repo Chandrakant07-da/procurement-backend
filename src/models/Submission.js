@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const submissionSchema = new mongoose.Schema({
   orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', required: true },
   inspectionManagerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  // Design Pattern: Document Snapshotting (Storing state at a point in time)
+  // Document Snapshotting Design Pattern (Storing state at a point in time)
   answers: [{
     questionLabel: String,
     type: { type: String },

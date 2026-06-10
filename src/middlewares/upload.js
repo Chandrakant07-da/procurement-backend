@@ -1,10 +1,10 @@
 const multer = require('multer');
 const path = require('path');
 
-// Design Pattern: Strategy Pattern (Defining the storage strategy)
+// Design Pattern: Strategy Pattern (Defining the storage strategy- Currently we are using diskStorage, We can also use memoryStorage for ex- AWS S3)
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'src/uploads/'); // Ensure this directory exists
+    cb(null, 'src/uploads/');
   },
   filename: function (req, file, cb) {
     // Create unique filenames to prevent overwriting

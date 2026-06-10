@@ -2,11 +2,7 @@ const Checklist = require('../models/Checklist');
 const Submission = require('../models/Submission');
 const Order = require('../models/Order');
 
-// ==========================================
-// A. CHECKLIST TEMPLATES CRUD
-// ==========================================
-
-// 1. Create Checklist Template (PM or Admin only)
+// Create Checklist Template (PM or Admin only)
 exports.createTemplate = async (req, res) => {
   try {
     const { title, fields } = req.body;
@@ -21,7 +17,7 @@ exports.createTemplate = async (req, res) => {
   }
 };
 
-// 2. Get all Checklist Templates
+// Get all Checklist Templates
 exports.getTemplates = async (req, res) => {
   try {
     const templates = await Checklist.find()
@@ -32,7 +28,7 @@ exports.getTemplates = async (req, res) => {
   }
 };
 
-// 3. Get Checklist Template by ID
+// Get Checklist Template by ID
 exports.getTemplateById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -49,7 +45,7 @@ exports.getTemplateById = async (req, res) => {
   }
 };
 
-// 4. Update Checklist Template (PM or Admin only)
+// Update Checklist Template (PM or Admin only)
 exports.updateTemplate = async (req, res) => {
   try {
     const { id } = req.params;
@@ -75,7 +71,7 @@ exports.updateTemplate = async (req, res) => {
   }
 };
 
-// 5. Delete Checklist Template (PM or Admin only)
+// Delete Checklist Template (PM or Admin only)
 exports.deleteTemplate = async (req, res) => {
   try {
     const { id } = req.params;
@@ -97,11 +93,11 @@ exports.deleteTemplate = async (req, res) => {
   }
 };
 
-// ==========================================
-// B. CHECKLIST SUBMISSIONS CRUD
+
+// CHECKLIST SUBMISSIONS CRUD
 // ==========================================
 
-// 1. Submit Inspection Answers (IM only)
+// Submit Inspection Answers (IM only)
 exports.submitChecklist = async (req, res) => {
   try {
     const { orderId } = req.body;
@@ -171,7 +167,7 @@ exports.submitChecklist = async (req, res) => {
   }
 };
 
-// 2. Get all submissions (Admin/PM see all, IM sees their own)
+// Get all submissions (Admin/PM see all, IM sees their own)
 exports.getSubmissions = async (req, res) => {
   try {
     let filter = {};
@@ -190,7 +186,7 @@ exports.getSubmissions = async (req, res) => {
   }
 };
 
-// 3. Get submission by ID
+// Get submission by ID
 exports.getSubmissionById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -213,7 +209,7 @@ exports.getSubmissionById = async (req, res) => {
   }
 };
 
-// 4. Update Submission (IM or Admin only)
+// Update Submission (IM or Admin only)
 exports.updateSubmission = async (req, res) => {
   try {
     const { id } = req.params;

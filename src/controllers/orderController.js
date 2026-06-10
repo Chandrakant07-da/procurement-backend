@@ -1,6 +1,6 @@
 const Order = require('../models/Order');
 
-// 1. Create Order (PM only)
+//Create Order (PM only)
 exports.createOrder = async (req, res) => {
   try {
     const { clientId, details, inspectionManagerId, checklistTemplateId } = req.body;
@@ -17,7 +17,7 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-// 2. Get all orders (Filtered by Role)
+// Get all orders (Filtered by Role)
 exports.getOrders = async (req, res) => {
   try {
     let filter = {};
@@ -43,7 +43,7 @@ exports.getOrders = async (req, res) => {
   }
 };
 
-// 3. Get order by ID (Role-restricted view)
+// Get order by ID
 exports.getOrderById = async (req, res) => {
   try {
     const id = req.params.id || req.params.orderId;
@@ -71,7 +71,7 @@ exports.getOrderById = async (req, res) => {
   }
 };
 
-// 4. Update order details (Admin/PM only)
+// Update order details (Admin/PM only)
 exports.updateOrder = async (req, res) => {
   try {
     const id = req.params.id || req.params.orderId;
@@ -98,7 +98,7 @@ exports.updateOrder = async (req, res) => {
   }
 };
 
-// 5. Update status (Admin, PM, IM)
+// Update status (Admin, PM, IM)
 exports.updateOrderStatus = async (req, res) => {
   try {
     const id = req.params.id || req.params.orderId;
@@ -107,7 +107,7 @@ exports.updateOrderStatus = async (req, res) => {
     const order = await Order.findById(id);
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
-    // Authorization: IM, PM, and Admin can update status
+    // IM, PM, and Admin can update status
     const isAuthorized = req.user.role === 'admin' ||
       (req.user.role === 'procurement_manager' && order.procurementManagerId.toString() === req.user._id.toString()) ||
       (req.user.role === 'inspection_manager' && order.inspectionManagerId && order.inspectionManagerId.toString() === req.user._id.toString());
@@ -125,7 +125,7 @@ exports.updateOrderStatus = async (req, res) => {
   }
 };
 
-// 6. Link Checklist to Order (PM only)
+// Link Checklist to Order (PM only)
 exports.linkChecklistToOrder = async (req, res) => {
   try {
     const { orderId, checklistTemplateId } = req.body;
@@ -133,7 +133,7 @@ exports.linkChecklistToOrder = async (req, res) => {
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
-    // Authorization: Must be admin or the PM who created the order
+    // Authorization: Must be Admin/PM only who created the order
     if (req.user.role !== 'admin' && order.procurementManagerId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ error: 'Not authorized to modify this order' });
     }
@@ -147,7 +147,7 @@ exports.linkChecklistToOrder = async (req, res) => {
   }
 };
 
-// 7. Delete Order (Admin/PM only)
+// Delete Order (Admin/PM only)
 exports.deleteOrder = async (req, res) => {
   try {
     const id = req.params.id || req.params.orderId;
