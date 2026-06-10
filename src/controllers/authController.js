@@ -2,13 +2,13 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '5d' });
 
 exports.login = async (req, res) => {
   const { email, mobile, password } = req.body;
 
   try {
-    // Determine login method dynamically based on input 
+    // Login method dynamically based on input 
     let user;
     if (email) user = await User.findOne({ email });
     else if (mobile) user = await User.findOne({ mobile });
@@ -29,7 +29,7 @@ exports.login = async (req, res) => {
 };
 
 exports.registerUser = async (req, res) => {
-  // Logic to enforce creation hierarchies (Admin creating PM, PM creating IM, etc.) [cite: 35, 38]
+  // Logic to enforce creation hierarchies (Admin creating PM, PM creating IM, etc.)
   const { role, email, mobile, password, managerId } = req.body;
 
   const creatorRole = req?.user?.role;
